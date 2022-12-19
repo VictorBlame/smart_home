@@ -131,3 +131,4 @@ dmypy.json
 .idea
 
 /facial_recognition/temp_images
+/facial_recognition/logs
