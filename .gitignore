@@ -130,5 +130,6 @@ dmypy.json
 
 .idea
 
-/facial_recognition/temp_images
+/facial_recognition/not_authenticated_users
+/facial_recognition/login_attempts
 /facial_recognition/logs
