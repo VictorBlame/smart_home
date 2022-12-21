@@ -8,11 +8,16 @@ KNOWN_FACES_DIR = 'authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
 TOLERANCE = 0.6
-FRAME_THICKNESS = 3
-FONT_THICKNESS = 2
+FRAME_THICKNESS = 4
+FONT_THICKNESS = 1
 MODEL = 'cnn'
 ACCEPTANCE_PERCENTAGE = 59
-IMAGE_RESIZE_FACTOR = 20
+IMAGE_RESIZE_PERCENTAGE = 20 #smallest value is 20
+GREEN = '\x1b[1;32;40m'
+RED = '\x1b[1;31;40m'
+END = '\x1b[0m'
+ACCESS_GRANTED = 'ACCESS_GRANTED'
+ACCESS_DENIED = 'ACCESS_DENIED'
 
 logging.basicConfig(
     filename='logs/runLog.log',
@@ -22,7 +27,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-log.debug('SCRIPT START')
+log.debug('AUTHENTICATION SCRIPT START')
 
 
 def resize_image_by_percentage(image, percentage):
@@ -45,7 +50,7 @@ def take_picture():
     try:
         cap = cv2.VideoCapture(0)
         ret, frame = cap.read()
-        cv2.imwrite(f'{UNKNOWN_FACES_DIR}/temp1.jpg', frame)
+        cv2.imwrite(f'{UNKNOWN_FACES_DIR}/temp.jpg', frame)
         cv2.destroyAllWindows()
         cap.release()
         print('Face scan complete')
@@ -56,11 +61,6 @@ def take_picture():
         log.error(error_message)
 
 
-def name_to_color(name):
-    color = [(ord(c.lower()) - 97) * 8 for c in name[:3]]
-    return color
-
-
 def minimum_success_rate(percent, results):
     success = 0
     for result in results:
@@ -68,6 +68,8 @@ def minimum_success_rate(percent, results):
             success += 1
     if (success / len(results)) * 100 >= percent:
         return True
+    elif success == 0:
+        return False
     else:
         return False
 
@@ -78,7 +80,7 @@ def loading_authenticated_users(array_of_faces, array_of_names):
         for name in os.listdir(KNOWN_FACES_DIR):
             for filename in os.listdir(f'{KNOWN_FACES_DIR}/{name}'):
                 image = face_recognition.load_image_file(f'{KNOWN_FACES_DIR}/{name}/{filename}')
-                resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_FACTOR)
+                resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
                 encoding = face_recognition.face_encodings(resized_image)[0]
 
                 array_of_faces.append(encoding)
@@ -94,14 +96,14 @@ def processing_unknown_users(array_of_faces, tolerance):
     try:
         for filename in os.listdir(UNKNOWN_FACES_DIR):
             print(f'Filename {filename}', end='')
-            log.info('Processing ' + str(filename) + ' has started')
-            image = face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}')
-            image_resized = resize_image_by_percentage(image, IMAGE_RESIZE_FACTOR)
+            log.info('------------ Processing ' + str(filename) + ' has started ------------')
+            image_original = cv2.cvtColor(face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}'), cv2.COLOR_RGB2BGR)
+            image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
             locations = face_recognition.face_locations(image_resized, model=MODEL)
             encodings = face_recognition.face_encodings(image_resized, locations)
             image_resized = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
-            showing_granted_images(encodings, locations, image_resized, array_of_faces, tolerance)
-            log.info('Processing ' + str(filename) + ' was successful')
+            showing_granted_images(encodings, locations, image_resized, array_of_faces, tolerance, image_original)
+            log.info('------------ Processing ' + str(filename) + ' was successful ------------')
         message = 'Everything was okay with processing_unknown_users function'
         log.info(message)
     except Exception as ex:
@@ -110,7 +112,7 @@ def processing_unknown_users(array_of_faces, tolerance):
         log.error(error_message)
 
 
-def showing_granted_images(encodings, locations, image, known_faces, tolerance):
+def showing_granted_images(encodings, locations, image, known_faces, tolerance, image_original):
     try:
         #take_picture()
         print(f', found {len(encodings)} face(s)')
@@ -118,27 +120,19 @@ def showing_granted_images(encodings, locations, image, known_faces, tolerance):
             results = face_recognition.compare_faces(known_faces, face_encoding, tolerance)
             access_granted = minimum_success_rate(ACCEPTANCE_PERCENTAGE, results)
             if access_granted:
-                match = known_names[results.index(True)] + ' ACCESS GRANTED'
-                log.info(match)
+                match = known_names[results.index(True)] + ' ' + GREEN + 'ACCESS GRANTED' + END
+                log_text = known_names[results.index(True)] + ' ACCESS GRANTED'
+                time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
+                log.info(log_text)
             else:
-                match = known_names[results.index(True)] + ' ACCESS DENIED'
+                match = 'UNKNOWN USER ' + RED + 'ACCESS DENIED' + END
+                log_text = 'UNKNOWN USER ACCESS DENIED'
+                time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
+                log.warning(log_text)
+
             print(f' - {match} from {results}')
-
-            top_left = (face_location[3], face_location[0])
-            bottom_right = (face_location[1], face_location[2])
-
-            color = name_to_color(match)
-
-            cv2.rectangle(image, top_left, bottom_right, color, FRAME_THICKNESS)
-
-            top_left = (face_location[3], face_location[2])
-            bottom_right = (face_location[1], face_location[2] + 22)
-            cv2.rectangle(image, top_left, bottom_right, color, cv2.FILLED)
-            cv2.putText(image, match, (face_location[3] + 10, face_location[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        (200, 200, 200), FONT_THICKNESS)
-            time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image)
-        message = 'Everything was okay with showing_granted_images function'
+            cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
+        message = 'Everything was okay with showing_granted_images function, original image saved'
         log.info(message)
     except Exception as ex:
         error_message = 'Something went wrong with showing_granted_images function. The problem was: ' + str(ex)
@@ -152,4 +146,4 @@ known_names = []
 
 loading_authenticated_users(known_faces, known_names)
 processing_unknown_users(known_faces, TOLERANCE)
-log.debug('SCRIPT END')
+log.debug('AUTHENTICATION SCRIPT END')
