@@ -4,6 +4,7 @@ import os
 import logging
 import datetime
 
+
 KNOWN_FACES_DIR = 'authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
@@ -102,8 +103,7 @@ def processing_unknown_users(array_of_faces, tolerance):
             image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
             locations = face_recognition.face_locations(image_resized, model=MODEL)
             encodings = face_recognition.face_encodings(image_resized, locations)
-            image_resized = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
-            showing_granted_images(encodings, locations, image_resized, array_of_faces, tolerance, image_original)
+            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original)
             log.info('------------ Processing ' + str(filename) + ' was successful ------------')
         message = 'Everything was okay with processing_unknown_users function'
         log.info(message)
@@ -113,7 +113,7 @@ def processing_unknown_users(array_of_faces, tolerance):
         log.error(error_message)
 
 
-def showing_granted_images(encodings, locations, image, known_faces, tolerance, image_original):
+def showing_granted_images(encodings, locations, known_faces, tolerance, image_original):
     try:
         #take_picture()
         print(f', found {len(encodings)} face(s)')
