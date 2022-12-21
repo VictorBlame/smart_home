@@ -7,6 +7,7 @@ import datetime
 KNOWN_FACES_DIR = 'authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
+LOGS_DIR = 'logs'
 TOLERANCE = 0.6
 FRAME_THICKNESS = 4
 FONT_THICKNESS = 1
@@ -20,7 +21,7 @@ ACCESS_GRANTED = 'ACCESS_GRANTED'
 ACCESS_DENIED = 'ACCESS_DENIED'
 
 logging.basicConfig(
-    filename='logs/runLog.log',
+    filename=f'{LOGS_DIR}/face_authenticator.log',
     level=logging.DEBUG,
     format='%(asctime)s.%(msecs)03d | %(levelname)8s | %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
