@@ -5,7 +5,6 @@ import logging
 import datetime
 import numpy as np
 
-
 KNOWN_FACES_DIR = 'authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
@@ -15,7 +14,7 @@ FRAME_THICKNESS = 4
 FONT_THICKNESS = 1
 MODEL = 'cnn'
 ACCEPTANCE_PERCENTAGE = 59
-IMAGE_RESIZE_PERCENTAGE = 20 #smallest value is 20
+IMAGE_RESIZE_PERCENTAGE = 20  # smallest value is 20
 GREEN = '\x1b[1;32;40m'
 RED = '\x1b[1;31;40m'
 END = '\x1b[0m'
@@ -73,8 +72,6 @@ def minimum_success_rate(percent, results):
             success += 1
     if (success / len(results)) * 100 >= percent:
         return True
-    elif success == 0:
-        return False
     else:
         return False
 
@@ -100,14 +97,17 @@ def loading_authenticated_users(array_of_faces, array_of_names):
 
 def processing_unknown_users(array_of_faces, tolerance):
     try:
-        for filename, number_of_users in zip(os.listdir(UNKNOWN_FACES_DIR), range(1, len(os.listdir(UNKNOWN_FACES_DIR)) + 1)):
+        for filename, number_of_users in zip(os.listdir(UNKNOWN_FACES_DIR),
+                                             range(1, len(os.listdir(UNKNOWN_FACES_DIR)) + 1)):
             print(f'Filename {filename}', end='')
             log.info('------------ Processing ' + str(filename) + ' has started ------------')
-            image_original = cv2.cvtColor(face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}'), cv2.COLOR_RGB2BGR)
+            image_original = cv2.cvtColor(face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}'),
+                                          cv2.COLOR_RGB2BGR)
             image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
             locations = face_recognition.face_locations(image_resized, model=MODEL)
             encodings = face_recognition.face_encodings(image_resized, locations)
-            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, number_of_users, filename)
+            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, number_of_users,
+                                   filename)
             log.info('------------ Processing ' + str(filename) + ' was successful ------------')
         message = 'Everything was okay with processing_unknown_users function'
         log.info(message)
@@ -119,7 +119,7 @@ def processing_unknown_users(array_of_faces, tolerance):
 
 def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, number_of_users, filename):
     try:
-        #take_picture()
+        # take_picture()
         print(f', found {len(encodings)} face(s)')
         for face_encoding, face_location in zip(encodings, locations):
             results = face_recognition.compare_faces(known_faces, face_encoding, tolerance)
@@ -154,7 +154,6 @@ def split_list_run(known_faces, known_names, tolerance):
 print('Loading known faces...')
 known_faces = []
 known_names = []
-
 
 loading_authenticated_users(known_faces, known_names)
 split_list_run(known_faces, known_names, TOLERANCE)
