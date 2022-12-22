@@ -32,18 +32,22 @@ log.debug('AUTHENTICATION SCRIPT START')
 
 
 def resize_image_by_percentage(image, percentage):
-    try:
-        height = int(image.shape[0] * percentage / 100)
-        width = int(image.shape[1] * percentage / 100)
-        dsize = (width, height)
-        image = cv2.resize(image, dsize)
-        log.info('Image resize successful to ' + str(int(percentage)) + '% of original size')
+    if percentage == 100:
+        log.info('Original image returned')
         return image
-    except Exception as ex:
-        error_message = 'Something went wrong with resize_image_by_percentage function. The problem was: ' + str(ex)
-        print(error_message)
-        log.error(error_message)
-        return None
+    else:
+        try:
+            height = int(image.shape[0] * percentage / 100)
+            width = int(image.shape[1] * percentage / 100)
+            dsize = (width, height)
+            image = cv2.resize(image, dsize)
+            log.info('Image resize successful to ' + str(int(percentage)) + '% of original size')
+            return image
+        except Exception as ex:
+            error_message = 'Something went wrong with resize_image_by_percentage function. The problem was: ' + str(ex)
+            print(error_message)
+            log.error(error_message)
+            return None
 
 
 def take_picture():
@@ -118,12 +122,11 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
         #take_picture()
         print(f', found {len(encodings)} face(s)')
         for face_encoding, face_location in zip(encodings, locations):
-            print(number_of_users)
             results = face_recognition.compare_faces(known_faces, face_encoding, tolerance)
             access_granted = minimum_success_rate(ACCEPTANCE_PERCENTAGE, results)
             if access_granted:
                 match = known_names[number_of_users - 1] + ' ' + GREEN + 'ACCESS GRANTED' + END
-                log_text = known_names[results.index(True)] + ' ACCESS GRANTED'
+                log_text = known_names[number_of_users - 1] + ' ACCESS GRANTED'
                 time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
                 log.info(log_text)
             else:
