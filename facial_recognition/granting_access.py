@@ -107,7 +107,7 @@ def processing_unknown_users(array_of_faces, tolerance):
             image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
             locations = face_recognition.face_locations(image_resized, model=MODEL)
             encodings = face_recognition.face_encodings(image_resized, locations)
-            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, number_of_users)
+            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, number_of_users, filename)
             log.info('------------ Processing ' + str(filename) + ' was successful ------------')
         message = 'Everything was okay with processing_unknown_users function'
         log.info(message)
@@ -117,7 +117,7 @@ def processing_unknown_users(array_of_faces, tolerance):
         log.error(error_message)
 
 
-def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, number_of_users):
+def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, number_of_users, filename):
     try:
         #take_picture()
         print(f', found {len(encodings)} face(s)')
@@ -125,13 +125,14 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
             results = face_recognition.compare_faces(known_faces, face_encoding, tolerance)
             access_granted = minimum_success_rate(ACCEPTANCE_PERCENTAGE, results)
             if access_granted:
-                match = known_names[number_of_users - 1] + ' ' + GREEN + 'ACCESS GRANTED' + END
-                log_text = known_names[number_of_users - 1] + ' ACCESS GRANTED'
+                match = known_names[number_of_users] + ' ' + filename + ' ' + GREEN + 'ACCESS GRANTED' + END
+                log_text = known_names[number_of_users] + ' ' + filename + ' ACCESS GRANTED'
                 time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
                 log.info(log_text)
+                os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
             else:
-                match = 'UNKNOWN USER ' + RED + 'ACCESS DENIED' + END
-                log_text = 'UNKNOWN USER ACCESS DENIED'
+                match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
+                log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
                 time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
                 log.warning(log_text)
 
