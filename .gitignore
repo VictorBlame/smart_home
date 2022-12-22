@@ -130,6 +130,8 @@ dmypy.json
 
 .idea
 
+.vscode
+
 /facial_recognition/not_authenticated_users
 /facial_recognition/authenticated_users/Dorina_Mayer
 /facial_recognition/login_attempts
