@@ -88,6 +88,7 @@ def loading_authenticated_users(array_of_faces, array_of_names):
                 array_of_faces.append(encoding)
                 if name not in array_of_names:
                     array_of_names.append(name)
+        #take_picture()
         log.info('Known faces loading was successful')
     except Exception as ex:
         error_message = 'Something went wrong with loading_authenticated_users function. The problem was: ' + str(ex)
@@ -98,7 +99,7 @@ def loading_authenticated_users(array_of_faces, array_of_names):
 def processing_unknown_users(array_of_faces, tolerance):
     try:
         for filename, number_of_users in zip(os.listdir(UNKNOWN_FACES_DIR),
-                                             range(1, len(os.listdir(UNKNOWN_FACES_DIR)) + 1)):
+                                             range(0, len(os.listdir(UNKNOWN_FACES_DIR)))):
             print(f'Filename {filename}', end='')
             log.info('------------ Processing ' + str(filename) + ' has started ------------')
             image_original = cv2.cvtColor(face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}'),
@@ -119,7 +120,6 @@ def processing_unknown_users(array_of_faces, tolerance):
 
 def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, number_of_users, filename):
     try:
-        # take_picture()
         print(f', found {len(encodings)} face(s)')
         for face_encoding, face_location in zip(encodings, locations):
             results = face_recognition.compare_faces(known_faces, face_encoding, tolerance)
