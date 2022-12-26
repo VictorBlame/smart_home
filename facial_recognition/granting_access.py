@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 
 KNOWN_FACES_DIR = 'authenticated_users'
+KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
 LOGS_DIR = 'logs'
@@ -76,8 +77,34 @@ def minimum_success_rate(percent, results):
         return False
 
 
+def preprocessing_images():
+    log.info('Preprocessing started....')
+    try:
+        for name in os.listdir(KNOWN_FACES_DIR):
+            cropped_list = []
+            for filename in os.listdir(f'{KNOWN_FACES_DIR}/{name}'):
+                image = face_recognition.load_image_file(f'{KNOWN_FACES_DIR}/{name}/{filename}')
+                resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
+                locations = face_recognition.face_locations(resized_image, model=MODEL)
+                top = int(locations[0][0])
+                right = int(locations[0][1])
+                bottom = int(locations[0][2])
+                left = int(locations[0][3])
+                crop_image = resized_image[left:top, right:bottom]
+                cropped_list.append(crop_image)
+            print(len(cropped_list))
+            for image, counter in zip(cropped_list, range(0, len(cropped_list))):
+                cv2.imwrite(f'{KNOWN_CROPPED_IMAGES}/{name}/{counter}.jpg', image)
+        log.info('Preprocessing finished.....')
+    except Exception as ex:
+        error_message = 'Something went wrong with preprocessing_images function. The problem was: ' + str(ex)
+        print(error_message)
+        log.error(error_message)
+
+
 def loading_authenticated_users(array_of_faces, array_of_names):
     log.info('Loading known faces...')
+    print('Loading known faces...')
     try:
         for name in os.listdir(KNOWN_FACES_DIR):
             for filename in os.listdir(f'{KNOWN_FACES_DIR}/{name}'):
@@ -151,10 +178,10 @@ def split_list_run(known_faces, known_names, tolerance):
         processing_unknown_users(process, tolerance)
 
 
-print('Loading known faces...')
 known_faces = []
 known_names = []
 
-loading_authenticated_users(known_faces, known_names)
-split_list_run(known_faces, known_names, TOLERANCE)
+preprocessing_images()
+#loading_authenticated_users(known_faces, known_names)
+#split_list_run(known_faces, known_names, TOLERANCE)
 log.debug('AUTHENTICATION SCRIPT END')
