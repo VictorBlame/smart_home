@@ -81,20 +81,18 @@ def preprocessing_images():
     log.info('Preprocessing started....')
     try:
         for name in os.listdir(KNOWN_FACES_DIR):
-            cropped_list = []
-            for filename in os.listdir(f'{KNOWN_FACES_DIR}/{name}'):
+            if not os.path.isdir(f'{KNOWN_CROPPED_IMAGES}/{name}'):
+                os.makedirs(f'{KNOWN_CROPPED_IMAGES}/{name}')
+            for filename, counter in zip(os.listdir(f'{KNOWN_FACES_DIR}/{name}'), range(0, len(os.listdir(f'{KNOWN_FACES_DIR}/{name}')))):
                 image = face_recognition.load_image_file(f'{KNOWN_FACES_DIR}/{name}/{filename}')
-                resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
-                locations = face_recognition.face_locations(resized_image, model=MODEL)
+                #resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
+                locations = face_recognition.face_locations(image, model=MODEL)
                 top = int(locations[0][0])
                 right = int(locations[0][1])
                 bottom = int(locations[0][2])
                 left = int(locations[0][3])
-                crop_image = resized_image[left:top, right:bottom]
-                cropped_list.append(crop_image)
-            print(len(cropped_list))
-            for image, counter in zip(cropped_list, range(0, len(cropped_list))):
-                cv2.imwrite(f'{KNOWN_CROPPED_IMAGES}/{name}/{counter}.jpg', image)
+                crop_image = image[top:bottom, left:right]
+                cv2.imwrite(f'{KNOWN_CROPPED_IMAGES}/{name}/{counter}.jpg', crop_image)
         log.info('Preprocessing finished.....')
     except Exception as ex:
         error_message = 'Something went wrong with preprocessing_images function. The problem was: ' + str(ex)
@@ -106,11 +104,11 @@ def loading_authenticated_users(array_of_faces, array_of_names):
     log.info('Loading known faces...')
     print('Loading known faces...')
     try:
-        for name in os.listdir(KNOWN_FACES_DIR):
-            for filename in os.listdir(f'{KNOWN_FACES_DIR}/{name}'):
-                image = face_recognition.load_image_file(f'{KNOWN_FACES_DIR}/{name}/{filename}')
+        for name in os.listdir(KNOWN_CROPPED_IMAGES):
+            for filename in os.listdir(f'{KNOWN_CROPPED_IMAGES}/{name}'):
+                image = face_recognition.load_image_file(f'{KNOWN_CROPPED_IMAGES}/{name}/{filename}')
                 resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
-                encoding = face_recognition.face_encodings(resized_image)[0]
+                encoding = face_recognition.face_encodings(image)[0]
 
                 array_of_faces.append(encoding)
                 if name not in array_of_names:
