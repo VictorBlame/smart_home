@@ -1,18 +1,17 @@
+import datetime
+import logging
+import os
+
 import cv2
 import face_recognition
-import os
-import logging
-import datetime
 import numpy as np
 
-KNOWN_FACES_DIR = 'authenticated_users'
+KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
 LOGS_DIR = 'logs'
 TOLERANCE = 0.6
-FRAME_THICKNESS = 4
-FONT_THICKNESS = 1
-MODEL = 'cnn'
+MODEL = 'mtcnn'
 ACCEPTANCE_PERCENTAGE = 59
 IMAGE_RESIZE_PERCENTAGE = 20  # smallest value is 20
 GREEN = '\x1b[1;32;40m'
@@ -36,6 +35,8 @@ def resize_image_by_percentage(image, percentage):
         return image
     else:
         try:
+            if percentage <= 20:
+                percentage = 20
             height = int(image.shape[0] * percentage / 100)
             width = int(image.shape[1] * percentage / 100)
             dsize = (width, height)
@@ -78,17 +79,20 @@ def minimum_success_rate(percent, results):
 
 def loading_authenticated_users(array_of_faces, array_of_names):
     log.info('Loading known faces...')
+    print('Loading known faces...')
     try:
-        for name in os.listdir(KNOWN_FACES_DIR):
-            for filename in os.listdir(f'{KNOWN_FACES_DIR}/{name}'):
-                image = face_recognition.load_image_file(f'{KNOWN_FACES_DIR}/{name}/{filename}')
-                resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
-                encoding = face_recognition.face_encodings(resized_image)[0]
-
-                array_of_faces.append(encoding)
+        for name in os.listdir(KNOWN_CROPPED_IMAGES):
+            for filename in os.listdir(f'{KNOWN_CROPPED_IMAGES}/{name}'):
+                image = face_recognition.load_image_file(f'{KNOWN_CROPPED_IMAGES}/{name}/{filename}')
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                try:
+                    encoding = face_recognition.face_encodings(image)[0]
+                    array_of_faces.append(encoding)
+                except:
+                    continue
                 if name not in array_of_names:
                     array_of_names.append(name)
-        #take_picture()
+        # take_picture()
         log.info('Known faces loading was successful')
     except Exception as ex:
         error_message = 'Something went wrong with loading_authenticated_users function. The problem was: ' + str(ex)
@@ -151,7 +155,6 @@ def split_list_run(known_faces, known_names, tolerance):
         processing_unknown_users(process, tolerance)
 
 
-print('Loading known faces...')
 known_faces = []
 known_names = []
 
