@@ -14,7 +14,7 @@ LOGS_DIR = 'logs'
 TOLERANCE = 0.6
 FRAME_THICKNESS = 4
 FONT_THICKNESS = 1
-MODEL = 'cnn'
+MODEL = 'mtcnn'
 ACCEPTANCE_PERCENTAGE = 59
 IMAGE_RESIZE_PERCENTAGE = 20  # smallest value is 20
 GREEN = '\x1b[1;32;40m'
@@ -110,6 +110,7 @@ def loading_authenticated_users(array_of_faces, array_of_names):
         for name in os.listdir(KNOWN_CROPPED_IMAGES):
             for filename in os.listdir(f'{KNOWN_CROPPED_IMAGES}/{name}'):
                 image = face_recognition.load_image_file(f'{KNOWN_CROPPED_IMAGES}/{name}/{filename}')
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 try:
                     encoding = face_recognition.face_encodings(image)[0]
                     array_of_faces.append(encoding)
@@ -135,7 +136,6 @@ def processing_unknown_users(array_of_faces, tolerance):
                                           cv2.COLOR_RGB2BGR)
             image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
             tic = time.perf_counter()
-            print(image_resized.shape)
             locations = face_recognition.face_locations(image_resized, model=MODEL)
             toc = time.perf_counter()
             print(f"Ran in {toc - tic:0.4f} seconds")
