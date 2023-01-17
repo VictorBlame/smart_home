@@ -1,0 +1,102 @@
+[
+    {
+        "market": "hu",
+        "link": ".klanhaboru.hu",
+        "twstat": "https://hu.twstats.com/"
+    },
+    {
+        "market": "en",
+        "link": ".tribalwars.net",
+        "twstat": "https://www.twstats.com/"
+    },
+    {
+        "market": "de",
+        "link": ".die-staemme.de",
+        "twstat": "https://de.twstats.com/"
+    },
+    {
+        "market": "ch",
+        "link": ".staemme.ch",
+        "twstat": "https://ch.twstats.com/"
+    },
+    {
+        "market": "nl",
+        "link": ".tribalwars.nl",
+        "twstat": "https://nl.twstats.com/"
+    },
+    {
+        "market": "pl",
+        "link": ".plemiona.pl",
+        "twstat": "https://pl.twstats.com/"
+    },
+    {
+        "market": "br",
+        "link": ".tribalwars.com.br",
+        "twstat": "https://br.twstats.com/"
+    },
+    {
+        "market": "pt",
+        "link": ".tribalwars.com.pt",
+        "twstat": "https://pt.twstats.com/"
+    },
+    {
+        "market": "cs",
+        "link": ".divokekmeny.cz",
+        "twstat": "https://cz.twstats.com/"
+    },
+    {
+        "market": "ro",
+        "link": ".triburile.ro",
+        "twstat": "https://ro.twstats.com/"
+    },
+    {
+        "market": "ru",
+        "link": ".voynaplemyon.com",
+        "twstat": "https://ru.twstats.com/"
+    },
+    {
+        "market": "gr",
+        "link": ".fyletikesmaxes.gr",
+        "twstat": "https://gr.twstats.com/"
+    },
+    {
+        "market": "sk",
+        "link": ".divoke-kmene.sk",
+        "twstat": "https://sk.twstats.com/"
+    },
+    {
+        "market": "it",
+        "link": ".tribals.it",
+        "twstat": "https://it.twstats.com/"
+    },
+    {
+        "market": "tr",
+        "link": ".klanlar.org",
+        "twstat": "https://tr.twstats.com/"
+    },
+    {
+        "market": "fr",
+        "link": ".guerretribale.fr",
+        "twstat": "https://fr.twstats.com/"
+    },
+    {
+        "market": "es",
+        "link": ".guerrastribales.es",
+        "twstat": "https://es.twstats.com/"
+    },
+    {
+        "market": "uk",
+        "link": ".tribalwars.co.uk",
+        "twstat": "https://www.twstats.co.uk/"
+    },
+    {
+        "market": "zz",
+        "link": ".tribalwars.works",
+        "twstat": "https://beta.twstats.com/"
+    },
+    {
+        "market": "us",
+        "link": ".tribalwars.us",
+        "twstat": "https://us.twstats.com/"
+    }
+]
