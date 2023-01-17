@@ -1,19 +1,16 @@
+import datetime
+import logging
+import os
+
 import cv2
 import face_recognition
-import os
-import logging
-import datetime
 import numpy as np
-import time
 
-KNOWN_FACES_DIR = 'authenticated_users'
 KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
 LOGIN_ATTEMPTS_DIR = 'login_attempts'
 LOGS_DIR = 'logs'
 TOLERANCE = 0.6
-FRAME_THICKNESS = 4
-FONT_THICKNESS = 1
 MODEL = 'mtcnn'
 ACCEPTANCE_PERCENTAGE = 59
 IMAGE_RESIZE_PERCENTAGE = 20  # smallest value is 20
@@ -38,6 +35,8 @@ def resize_image_by_percentage(image, percentage):
         return image
     else:
         try:
+            if percentage <= 20:
+                percentage = 20
             height = int(image.shape[0] * percentage / 100)
             width = int(image.shape[1] * percentage / 100)
             dsize = (width, height)
@@ -78,31 +77,6 @@ def minimum_success_rate(percent, results):
         return False
 
 
-def preprocessing_images():
-    log.info('Preprocessing started....')
-    tic = time.perf_counter()
-    try:
-        for name in os.listdir(KNOWN_FACES_DIR):
-            if not os.path.isdir(f'{KNOWN_CROPPED_IMAGES}/{name}'):
-                os.makedirs(f'{KNOWN_CROPPED_IMAGES}/{name}')
-            for filename, counter in zip(os.listdir(f'{KNOWN_FACES_DIR}/{name}'),
-                                         range(0, len(os.listdir(f'{KNOWN_FACES_DIR}/{name}')))):
-                image = face_recognition.load_image_file(f'{KNOWN_FACES_DIR}/{name}/{filename}')
-                resized_image = resize_image_by_percentage(image, IMAGE_RESIZE_PERCENTAGE)
-                locations = face_recognition.face_locations(resized_image, model=MODEL)
-                top, right, bottom, left = int(locations[0][0]), int(locations[0][1]), int(locations[0][2]), int(
-                    locations[0][3])
-                crop_image = resized_image[top:bottom, left:right]
-                cv2.imwrite(f'{KNOWN_CROPPED_IMAGES}/{name}/{counter}.jpg', crop_image)
-        log.info('Preprocessing finished.....')
-    except Exception as ex:
-        error_message = 'Something went wrong with preprocessing_images function. The problem was: ' + str(ex)
-        print(error_message)
-        log.error(error_message)
-    toc = time.perf_counter()
-    print(f"Ran in {toc - tic:0.4f} seconds")
-
-
 def loading_authenticated_users(array_of_faces, array_of_names):
     log.info('Loading known faces...')
     print('Loading known faces...')
@@ -135,10 +109,7 @@ def processing_unknown_users(array_of_faces, tolerance):
             image_original = cv2.cvtColor(face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}'),
                                           cv2.COLOR_RGB2BGR)
             image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
-            tic = time.perf_counter()
             locations = face_recognition.face_locations(image_resized, model=MODEL)
-            toc = time.perf_counter()
-            print(f"Ran in {toc - tic:0.4f} seconds")
             encodings = face_recognition.face_encodings(image_resized, locations)
             showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, number_of_users,
                                    filename)
@@ -187,10 +158,6 @@ def split_list_run(known_faces, known_names, tolerance):
 known_faces = []
 known_names = []
 
-# preprocessing_images()
-tic = time.perf_counter()
 loading_authenticated_users(known_faces, known_names)
 split_list_run(known_faces, known_names, TOLERANCE)
-toc = time.perf_counter()
-print(f"Ran in {toc - tic:0.4f} seconds")
 log.debug('AUTHENTICATION SCRIPT END')
