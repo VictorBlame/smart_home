@@ -4,7 +4,6 @@ import os
 
 import cv2
 import face_recognition
-import numpy as np
 
 KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
@@ -77,23 +76,22 @@ def minimum_success_rate(percent, results):
         return False
 
 
-def loading_authenticated_users(array_of_faces, array_of_names):
+def loading_authenticated_users(array_of_faces):
     log.info('Loading known faces...')
     print('Loading known faces...')
     try:
         for name in os.listdir(KNOWN_CROPPED_IMAGES):
+            encodings = []
             for filename in os.listdir(f'{KNOWN_CROPPED_IMAGES}/{name}'):
                 image = face_recognition.load_image_file(f'{KNOWN_CROPPED_IMAGES}/{name}/{filename}')
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 try:
                     encoding = face_recognition.face_encodings(image)[0]
-                    array_of_faces[name] = encoding
+                    encodings.append(encoding)
                 except:
                     continue
-                if name not in array_of_names:
-                    array_of_names.append(name)
+            array_of_faces[name] = encodings
         # take_picture()
-        print(array_of_faces)
         log.info('Known faces loading was successful')
     except Exception as ex:
         error_message = 'Something went wrong with loading_authenticated_users function. The problem was: ' + str(ex)
@@ -112,8 +110,7 @@ def processing_unknown_users(array_of_faces, tolerance):
             image_resized = resize_image_by_percentage(image_original, IMAGE_RESIZE_PERCENTAGE)
             locations = face_recognition.face_locations(image_resized, model=MODEL)
             encodings = face_recognition.face_encodings(image_resized, locations)
-            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, number_of_users,
-                                   filename)
+            showing_granted_images(encodings, locations, array_of_faces, tolerance, image_original, filename)
             log.info('------------ Processing ' + str(filename) + ' was successful ------------')
         message = 'Everything was okay with processing_unknown_users function'
         log.info(message)
@@ -123,28 +120,27 @@ def processing_unknown_users(array_of_faces, tolerance):
         log.error(error_message)
 
 
-def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, number_of_users, filename):
+def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, filename):
     try:
         print(f', found {len(encodings)} face(s)')
         for face_encoding, face_location in zip(encodings, locations):
-            for name in known_faces:
-                for encoding in name:
-                    results = face_recognition.compare_faces(known_faces[name][encoding], face_encoding, tolerance)
-                    access_granted = minimum_success_rate(ACCEPTANCE_PERCENTAGE, results)
-                    if access_granted:
-                        match = known_names[number_of_users] + ' ' + filename + ' ' + GREEN + 'ACCESS GRANTED' + END
-                        log_text = known_names[number_of_users] + ' ' + filename + ' ACCESS GRANTED'
-                        time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
-                        log.info(log_text)
-                        os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
-                    else:
-                        match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
-                        log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
-                        time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
-                        log.warning(log_text)
+            for name, face_encodings in known_faces.items():
+                results = face_recognition.compare_faces(face_encodings, face_encoding, tolerance)
+                access_granted = minimum_success_rate(ACCEPTANCE_PERCENTAGE, results)
+                if access_granted:
+                    match = name + ' ' + filename + ' ' + GREEN + 'ACCESS GRANTED' + END
+                    log_text = name + ' ' + filename + ' ACCESS GRANTED'
+                    time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
+                    log.info(log_text)
+                    os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
+                else:
+                    match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
+                    log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
+                    time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
+                    log.warning(log_text)
 
-                    print(f' - {match} from {results}')
-                    cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
+                print(f' - {match} from {results}')
+                cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
         message = 'Everything was okay with showing_granted_images function, original image saved'
         log.info(message)
     except Exception as ex:
@@ -153,14 +149,8 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
         log.error(error_message)
 
 
-def split_list_run(known_faces, known_names, tolerance):
-    for process in np.array_split(known_faces, len(known_names)):
-        processing_unknown_users(process, tolerance)
-
-
 known_faces = {}
-known_names = []
 
-loading_authenticated_users(known_faces, known_names)
+loading_authenticated_users(known_faces)
 processing_unknown_users(known_faces, TOLERANCE)
 log.debug('AUTHENTICATION SCRIPT END')
