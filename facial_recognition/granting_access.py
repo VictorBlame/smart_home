@@ -134,13 +134,19 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
                     log.info(log_text)
                     os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
                 else:
-                    match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
+                    match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END + ' as ' + name
                     log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
                     time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
                     log.warning(log_text)
 
                 print(f' - {match} from {results}')
                 cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
+
+        if len(os.listdir(f'{UNKNOWN_FACES_DIR}')) >= 0:
+            for filename in os.listdir(f'{UNKNOWN_FACES_DIR}'):
+                time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
+                cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
+                os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
         message = 'Everything was okay with showing_granted_images function, original image saved'
         log.info(message)
     except Exception as ex:
