@@ -101,8 +101,7 @@ def loading_authenticated_users(array_of_faces):
 
 def processing_unknown_users(array_of_faces, tolerance):
     try:
-        for filename, number_of_users in zip(os.listdir(UNKNOWN_FACES_DIR),
-                                             range(0, len(os.listdir(UNKNOWN_FACES_DIR)))):
+        for filename in os.listdir(UNKNOWN_FACES_DIR):
             print(f'Filename {filename}', end='')
             log.info('------------ Processing ' + str(filename) + ' has started ------------')
             image_original = cv2.cvtColor(face_recognition.load_image_file(f'{UNKNOWN_FACES_DIR}/{filename}'),
@@ -124,29 +123,41 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
     try:
         print(f', found {len(encodings)} face(s)')
         for face_encoding, face_location in zip(encodings, locations):
+            final_message = {
+                'access_granted': False,
+                'message': '',
+                'message_normalized': '',
+                'result': '',
+                'authenticated_user': ''
+            }
             for name, face_encodings in known_faces.items():
                 results = face_recognition.compare_faces(face_encodings, face_encoding, tolerance)
                 access_granted = minimum_success_rate(ACCEPTANCE_PERCENTAGE, results)
                 if access_granted:
                     match = name + ' ' + filename + ' ' + GREEN + 'ACCESS GRANTED' + END
                     log_text = name + ' ' + filename + ' ACCESS GRANTED'
+                    final_message['access_granted'], final_message['message'], final_message['message_normalized'], \
+                        final_message['result'], final_message[
+                        'authenticated_user'] = True, match, log_text, results, name
                     time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
-                    log.info(log_text)
+                    cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
                     os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
+                    log.info(log_text)
                 else:
-                    match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END + ' as ' + name
+                    match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
                     log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
-                    time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
+                    if not final_message['access_granted']:
+                        final_message['access_granted'], final_message['message'], final_message['message_normalized'], \
+                            final_message['result'], final_message[
+                            'authenticated_user'] = True, match, log_text, results, 'UNKNOWN USER'
                     log.warning(log_text)
 
-                print(f' - {match} from {results}')
-                cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
+            print(f' - {final_message["message"]} from {final_message["result"]}')
 
-        if len(os.listdir(f'{UNKNOWN_FACES_DIR}')) >= 0:
-            for filename in os.listdir(f'{UNKNOWN_FACES_DIR}'):
-                time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
-                cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
-                os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
+        if os.path.exists(f'{UNKNOWN_FACES_DIR}/{filename}'):
+            time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
+            cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
+            os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
         message = 'Everything was okay with showing_granted_images function, original image saved'
         log.info(message)
     except Exception as ex:
