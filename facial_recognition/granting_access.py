@@ -1,9 +1,15 @@
 import datetime
 import logging
 import os
-
+import time
 import cv2
 import face_recognition
+import database_connector
+import numpy as np
+
+db = database_connector.init()
+usersCollection = db.users
+loginCollection = db.login_attempts
 
 KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
@@ -119,6 +125,30 @@ def processing_unknown_users(array_of_faces, tolerance):
         log.error(error_message)
 
 
+def correct_encoding(dictionary):
+
+    new = {}
+    for key1, val1 in dictionary.items():
+        if isinstance(val1, dict):
+            val1 = correct_encoding(val1)
+
+        if isinstance(val1, np.bool_):
+            val1 = bool(val1)
+
+        if isinstance(val1, np.int64):
+            val1 = int(val1)
+
+        if isinstance(val1, np.float64):
+            val1 = float(val1)
+
+        if isinstance(val1, set):
+            val1 = list(val1)
+
+        new[key1] = val1
+
+    return new
+
+
 def showing_granted_images(encodings, locations, known_faces, tolerance, image_original, filename):
     try:
         print(f', found {len(encodings)} face(s)')
@@ -128,7 +158,8 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
                 'message': '',
                 'message_normalized': '',
                 'result': '',
-                'authenticated_user': ''
+                'authenticated_user': '',
+                'createDate': int(0)
             }
             for name, face_encodings in known_faces.items():
                 results = face_recognition.compare_faces(face_encodings, face_encoding, tolerance)
@@ -136,9 +167,11 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
                 if access_granted:
                     match = name + ' ' + filename + ' ' + GREEN + 'ACCESS GRANTED' + END
                     log_text = name + ' ' + filename + ' ACCESS GRANTED'
+                    timestamp = int(time.time())
                     final_message['access_granted'], final_message['message'], final_message['message_normalized'], \
                         final_message['result'], final_message[
-                        'authenticated_user'] = True, match, log_text, results, name
+                        'authenticated_user'], final_message[
+                        'createDate'] = True, match, log_text, results, name, timestamp
                     time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
                     cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
                     os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
@@ -147,12 +180,16 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
                     match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
                     log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
                     if not final_message['access_granted']:
+                        timestamp = int(time.time())
                         final_message['access_granted'], final_message['message'], final_message['message_normalized'], \
                             final_message['result'], final_message[
-                            'authenticated_user'] = True, match, log_text, results, 'UNKNOWN USER'
+                            'authenticated_user'], final_message[
+                            'createDate'] = False, match, log_text, results, 'UNKNOWN USER', timestamp
                     log.warning(log_text)
 
             print(f' - {final_message["message"]} from {final_message["result"]}')
+            print(final_message)
+            loginCollection.insert_one(correct_encoding(final_message))
 
         if os.path.exists(f'{UNKNOWN_FACES_DIR}/{filename}'):
             time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
