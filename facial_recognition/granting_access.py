@@ -1,9 +1,17 @@
 import datetime
 import logging
 import os
+import time
 
 import cv2
 import face_recognition
+import numpy as np
+
+import database_connector
+
+db = database_connector.init()
+usersCollection = db.users
+loginCollection = db.login_attempts
 
 KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
@@ -124,10 +132,11 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
         print(f', found {len(encodings)} face(s)')
         for face_encoding, face_location in zip(encodings, locations):
             final_message = {
+                'createDate': int(0),
                 'access_granted': False,
                 'message': '',
                 'message_normalized': '',
-                'result': '',
+                'result': [],
                 'authenticated_user': ''
             }
             for name, face_encodings in known_faces.items():
@@ -136,9 +145,13 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
                 if access_granted:
                     match = name + ' ' + filename + ' ' + GREEN + 'ACCESS GRANTED' + END
                     log_text = name + ' ' + filename + ' ACCESS GRANTED'
-                    final_message['access_granted'], final_message['message'], final_message['message_normalized'], \
-                        final_message['result'], final_message[
-                        'authenticated_user'] = True, match, log_text, results, name
+                    timestamp = int(time.time())
+                    final_message['createDate'] = timestamp
+                    final_message['access_granted'] = True
+                    final_message['message'] = match
+                    final_message['message_normalized'] = log_text
+                    final_message['result'] = np.array(results, dtype=bool).tolist()
+                    final_message['authenticated_user'] = name
                     time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_GRANTED'
                     cv2.imwrite(f'{LOGIN_ATTEMPTS_DIR}/{time_string}.jpg', image_original)
                     os.remove(f'{UNKNOWN_FACES_DIR}/{filename}')
@@ -147,12 +160,22 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
                     match = 'UNKNOWN USER ' + filename + ' ' + RED + 'ACCESS DENIED' + END
                     log_text = 'UNKNOWN USER ' + filename + ' ACCESS DENIED'
                     if not final_message['access_granted']:
-                        final_message['access_granted'], final_message['message'], final_message['message_normalized'], \
-                            final_message['result'], final_message[
-                            'authenticated_user'] = True, match, log_text, results, 'UNKNOWN USER'
+                        timestamp = int(time.time())
+                        final_message['createDate'] = timestamp
+                        final_message['access_granted'] = False
+                        final_message['message'] = match
+                        final_message['message_normalized'] = log_text
+                        final_message['result'] = np.array(results, dtype=bool).tolist()
+                        final_message['authenticated_user'] = 'UNKNOWN USER'
                     log.warning(log_text)
 
             print(f' - {final_message["message"]} from {final_message["result"]}')
+            try:
+                loginCollection.insert_one(final_message)
+                log.debug('Inserting new document to MongoDB was successful')
+            except Exception as ex:
+                print('Something went wrong with the MongoDB insert')
+                log.error(ex)
 
         if os.path.exists(f'{UNKNOWN_FACES_DIR}/{filename}'):
             time_string = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + '_ACCESS_DENIED'
