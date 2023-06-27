@@ -1,8 +1,18 @@
 import pymongo
 
+import config as conf
+
+log = conf.LOG
+
 
 def init():
-    client = pymongo.MongoClient(
-        "mongodb+srv://superUser:superUser@smarthome.co6vilf.mongodb.net/?retryWrites=true&w=majority")
-    db = client.smart_home
-    return db
+    try:
+        client = pymongo.MongoClient(conf.MONGO_CLIENT)
+        db = client.smart_home
+        log.info('CONNECTING TO MONGODB WAS SUCCESSFUL')
+        return db
+    except Exception as ex:
+        error_message = 'Something went wrong with the connecting to the MongoDB database. The problem was: ' + str(ex)
+        print(error_message)
+        log.error(error_message)
+        return None
