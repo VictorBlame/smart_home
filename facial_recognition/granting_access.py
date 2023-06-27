@@ -8,10 +8,19 @@ import face_recognition
 import numpy as np
 
 import database_connector
+from flask import Flask, render_template
 
 db = database_connector.init()
 usersCollection = db.users
 loginCollection = db.login_attempts
+
+app = Flask(__name__, template_folder="templates")
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 
 KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
 UNKNOWN_FACES_DIR = 'not_authenticated_users'
@@ -191,6 +200,9 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
 
 known_faces = {}
 
-loading_authenticated_users(known_faces)
-processing_unknown_users(known_faces, TOLERANCE)
+# loading_authenticated_users(known_faces)
+# processing_unknown_users(known_faces, TOLERANCE)
 log.debug('AUTHENTICATION SCRIPT END')
+
+if __name__ == "__main__":
+    app.run(host='localhost', port=9874)
