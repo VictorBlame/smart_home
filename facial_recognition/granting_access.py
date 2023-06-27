@@ -8,6 +8,7 @@ import numpy as np
 
 import config as conf
 import database_connector
+from video_frames import take_picture
 
 db = database_connector.init()
 usersCollection = db.users
@@ -67,7 +68,7 @@ def loading_authenticated_users(array_of_faces):
                 except:
                     continue
             array_of_faces[name] = encodings
-        # take_picture()
+        take_picture()
         log.info('Known faces loading was successful')
     except Exception as ex:
         error_message = 'Something went wrong with loading_authenticated_users function. The problem was: ' + str(ex)
@@ -157,6 +158,16 @@ def showing_granted_images(encodings, locations, known_faces, tolerance, image_o
         log.error(error_message)
 
 
-# loading_authenticated_users(known_faces)
-# processing_unknown_users(known_faces, conf.TOLERANCE)
+def access_checking():
+    try:
+        loading_authenticated_users(known_faces)
+        processing_unknown_users(known_faces, conf.TOLERANCE)
+        message = 'Everything was okay with access_checking function'
+        log.info(message)
+    except Exception as ex:
+        error_message = 'Something went wrong with access_checking function. The problem was: ' + str(ex)
+        print(error_message)
+        log.error(error_message)
+
+
 log.debug('AUTHENTICATION SCRIPT END')

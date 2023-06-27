@@ -15,6 +15,8 @@ RED = '\x1b[1;31;40m'
 END = '\x1b[0m'
 MONGO_CLIENT = "mongodb+srv://superUser:superUser@smarthome.co6vilf.mongodb.net/?retryWrites=true&w=majority"
 VIDEO_FPS = 30  # FPS used in the given in the video feed
+APP_HOST = 'localhost'
+APP_PORT = 9874
 
 
 logging.basicConfig(

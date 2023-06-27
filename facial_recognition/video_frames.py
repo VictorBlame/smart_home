@@ -3,12 +3,15 @@ import cv2
 import config as conf
 
 log = conf.LOG
+paused = False
+video_feed = cv2.VideoCapture(0)
+video_feed.set(cv2.CAP_PROP_FPS, conf.VIDEO_FPS)
 
 
 def take_picture():
     print('Scanning...')
     try:
-        cap = cv2.VideoCapture(0)
+        cap = video_feed
         ret, frame = cap.read()
         cv2.imwrite(f'{conf.UNKNOWN_FACES_DIR}/temp.jpg', frame)
         cv2.destroyAllWindows()
@@ -21,10 +24,10 @@ def take_picture():
         log.error(error_message)
 
 
-def generate_frames_for_frontend(paused):
+def generate_frames_for_frontend():
     while True:
         if not paused:
-            success, frame = cv2.VideoCapture(0).set(cv2.CAP_PROP_FPS, conf.VIDEO_FPS).read()
+            success, frame = video_feed.read()
             if not success:
                 break
             else:
