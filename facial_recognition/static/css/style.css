@@ -1,6 +1,24 @@
 h1 {
-    border: 2px #eee solid;
     color: red;
     text-align: center;
     padding: 10px;
+}
+
+img {
+    align: center;
+}
+
+button {
+    align: center;
+}
+
+.container {
+    border: 2px #eee solid;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
 }

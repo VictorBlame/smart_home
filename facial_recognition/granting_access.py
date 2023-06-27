@@ -8,18 +8,53 @@ import face_recognition
 import numpy as np
 
 import database_connector
-from flask import Flask, render_template
+from flask import Flask, render_template, Response
 
 db = database_connector.init()
 usersCollection = db.users
 loginCollection = db.login_attempts
 
 app = Flask(__name__, template_folder="templates")
+video_capture = cv2.VideoCapture(0)
+video_capture.set(cv2.CAP_PROP_FPS, 30)
+paused = False
+
+
+def generate_frames():
+    while True:
+        if not paused:
+            success, frame = video_capture.read()
+            if not success:
+                break
+            else:
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/start')
+def start():
+    global paused
+    paused = False
+    return 'Webcam feed started.'
+
+
+@app.route('/pause')
+def pause():
+    global paused
+    paused = True
+    return 'Webcam feed paused.'
 
 
 KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
