@@ -34,6 +34,3 @@ def preprocessing_images():
         error_message = 'Something went wrong with preprocessing_images function. The problem was: ' + str(ex)
         print(error_message)
         log.error(error_message)
-
-
-preprocessing_images()

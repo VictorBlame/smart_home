@@ -20,6 +20,21 @@ log = conf.LOG
 log.debug('AUTHENTICATION SCRIPT START')
 
 
+def is_preprocessing_needed():
+    known_user = []
+    cropped_known_user = []
+    for name in os.listdir(conf.KNOWN_FACES_DIR):
+        known_user.append(name)
+    for crop_name in os.listdir(conf.KNOWN_CROPPED_IMAGES):
+        cropped_known_user.append(crop_name)
+    if np.array_equal(known_user, cropped_known_user):
+        log.info('Preprocessing is not needed')
+        return False
+    else:
+        log.info('Preprocessing needed')
+        return True
+
+
 def resize_image_by_percentage(image, percentage):
     if percentage == 100:
         log.info('Original image returned')
