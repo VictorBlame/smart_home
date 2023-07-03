@@ -1,9 +1,10 @@
 import logging
+import os
 
-KNOWN_CROPPED_IMAGES = 'images/cropped_authenticated_users'
-KNOWN_FACES_DIR = 'images/authenticated_users'
-UNKNOWN_FACES_DIR = 'images/not_authenticated_users'
-LOGIN_ATTEMPTS_DIR = 'images/login_attempts'
+KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
+KNOWN_FACES_DIR = 'authenticated_users'
+UNKNOWN_FACES_DIR = 'not_authenticated_users'
+LOGIN_ATTEMPTS_DIR = 'login_attempts'
 LOGS_DIR = 'logs'
 TOLERANCE = 0.6  # tolerance for the face recognition
 MODEL = 'mtcnn'  # used model for the face recognition
@@ -17,10 +18,24 @@ VIDEO_FPS = 30  # FPS used in the given in the video feed
 APP_HOST = 'localhost'
 APP_PORT = 9874
 
-logging.basicConfig(
-    filename=f'{LOGS_DIR}/face_authenticator.log',
-    level=logging.DEBUG,
-    format='%(asctime)s.%(msecs)03d | %(levelname)8s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-)
-LOG = logging.getLogger(__name__)
+
+def setup_logger(log_file):
+    # Create a logger
+    logger = logging.getLogger(log_file)
+    logger.setLevel(logging.DEBUG)
+
+    # Create a formatter with date format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+    # Create a file handler with full path
+    log_folder = LOGS_DIR  # Specify the folder name
+    os.makedirs(log_folder, exist_ok=True)  # Create the log folder if it doesn't exist
+    log_path = os.path.join(log_folder, log_file)  # Create the full path to the log file
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+
+    return logger

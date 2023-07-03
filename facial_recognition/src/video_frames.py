@@ -2,7 +2,7 @@ import cv2
 
 import facial_recognition.src.config as conf
 
-log = conf.LOG
+log = conf.setup_logger('face_authenticator.log')
 paused = False
 video_feed = cv2.VideoCapture(0)
 video_feed.set(cv2.CAP_PROP_FPS, conf.VIDEO_FPS)

@@ -2,7 +2,7 @@ import pymongo
 
 import facial_recognition.src.config as conf
 
-log = conf.LOG
+log = conf.setup_logger('face_authenticator.log')
 
 
 def init():

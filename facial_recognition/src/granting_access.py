@@ -15,7 +15,7 @@ usersCollection = db.users
 loginCollection = db.login_attempts
 known_faces = {}
 
-log = conf.LOG
+log = conf.setup_logger('face_authenticator.log')
 
 log.debug('AUTHENTICATION SCRIPT START')
 
