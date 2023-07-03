@@ -6,11 +6,11 @@ import cv2
 import face_recognition
 import numpy as np
 
-import config as conf
-import database_connector
-from video_frames import take_picture
+import facial_recognition.src.config as conf
+import facial_recognition.src.database_connector as database
+from facial_recognition.src.video_frames import take_picture
 
-db = database_connector.init()
+db = database.init()
 usersCollection = db.users
 loginCollection = db.login_attempts
 known_faces = {}

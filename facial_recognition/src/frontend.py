@@ -1,8 +1,8 @@
 from flask import Flask, render_template, Response
 
 import config as conf
-from granting_access import access_checking
-from video_frames import generate_frames_for_frontend
+from facial_recognition.src.granting_access import access_checking
+from facial_recognition.src.video_frames import generate_frames_for_frontend
 
 app = Flask(__name__, template_folder="templates")
 paused = False

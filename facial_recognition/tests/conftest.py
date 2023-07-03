@@ -1,7 +1,7 @@
 import face_recognition
 import pytest
 
-import facial_recognition.config as conf
+import facial_recognition.src.config as conf
 
 
 @pytest.fixture

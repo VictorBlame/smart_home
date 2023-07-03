@@ -132,8 +132,8 @@ dmypy.json
 
 .vscode
 
-/facial_recognition/not_authenticated_users
-/facial_recognition/authenticated_users/Dorina_Mayer
-/facial_recognition/cropped_authenticated_users/Dorina_Mayer
-/facial_recognition/login_attempts
+/facial_recognition/images/not_authenticated_users
+/facial_recognition/images/login_attempts
 /facial_recognition/logs
+
+.pytest_cache

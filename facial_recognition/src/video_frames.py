@@ -1,6 +1,6 @@
 import cv2
 
-import config as conf
+import facial_recognition.src.config as conf
 
 log = conf.LOG
 paused = False

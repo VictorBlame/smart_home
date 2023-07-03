@@ -1,5 +1,5 @@
-import facial_recognition.config as conf
-from facial_recognition.granting_access import resize_image_by_percentage
+import facial_recognition.src.config as conf
+from facial_recognition.src.granting_access import resize_image_by_percentage
 
 
 def test_resize_image_by_percentage(input_image):

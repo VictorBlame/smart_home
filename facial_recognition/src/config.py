@@ -1,10 +1,9 @@
 import logging
 
-
-KNOWN_CROPPED_IMAGES = 'cropped_authenticated_users'
-KNOWN_FACES_DIR = 'authenticated_users'
-UNKNOWN_FACES_DIR = 'not_authenticated_users'
-LOGIN_ATTEMPTS_DIR = 'login_attempts'
+KNOWN_CROPPED_IMAGES = 'images/cropped_authenticated_users'
+KNOWN_FACES_DIR = 'images/authenticated_users'
+UNKNOWN_FACES_DIR = 'images/not_authenticated_users'
+LOGIN_ATTEMPTS_DIR = 'images/login_attempts'
 LOGS_DIR = 'logs'
 TOLERANCE = 0.6  # tolerance for the face recognition
 MODEL = 'mtcnn'  # used model for the face recognition
@@ -17,7 +16,6 @@ MONGO_CLIENT = "mongodb+srv://superUser:superUser@smarthome.co6vilf.mongodb.net/
 VIDEO_FPS = 30  # FPS used in the given in the video feed
 APP_HOST = 'localhost'
 APP_PORT = 9874
-
 
 logging.basicConfig(
     filename=f'{LOGS_DIR}/face_authenticator.log',

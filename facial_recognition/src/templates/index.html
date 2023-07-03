@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Webcam Feed</h1>
-    <img src="{{ url_for('video_feed') }}" width="640" height="480" class="center" />
-    <br />
-    <button onclick="check_identity()" class="center">LOGIN</button>
-    <script>
+<h1>Webcam Feed</h1>
+<img class="center" height="480" src="{{ url_for('video_feed') }}" width="640"/>
+<br/>
+<button class="center" onclick="check_identity()">LOGIN</button>
+<script>
         function check_identity() {
             fetch('/check')
                 .then(response => console.log(response.text()))
                 .catch(error => console.log(error));
         }
-    </script>
+
+</script>
 {% endblock %}

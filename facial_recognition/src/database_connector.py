@@ -1,6 +1,6 @@
 import pymongo
 
-import config as conf
+import facial_recognition.src.config as conf
 
 log = conf.LOG
 
